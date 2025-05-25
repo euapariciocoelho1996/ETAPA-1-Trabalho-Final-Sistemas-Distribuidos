@@ -76,12 +76,23 @@ def run_experiment():
             t3 = float(ts.get('T3', 0))
             t4 = float(ts.get('T4', 0))
             t5 = float(ts.get('T5', 0))
-            print(f"T0 (Início no Source): {t0:.3f} | T1 (Chegada no LB01): {t1:.3f} | ΔT1 (Source -> LB01): {(t1-t0)*1000:.2f} ms")
-            print(f"T2 (Saída do LB01 / Chegada no S01): {t2:.3f} | ΔT2 (LB01 -> S01): {(t2-t1)*1000:.2f} ms")
-            print(f"T3 (Saída do S01 / Chegada no LB02): {t3:.3f} | ΔT3 (S01 -> LB02): {(t3-t2)*1000:.2f} ms")
-            print(f"T4 (Saída do LB02 / Chegada no S02): {t4:.3f} | ΔT4 (LB02 -> S02): {(t4-t3)*1000:.2f} ms")
-            print(f"T5 (Saída do S02 / Fim no Source): {t5:.3f} | ΔT5 (S02 -> Source): {(t5-t4)*1000:.2f} ms")
-            print(f"TEMPO TOTAL (Source -> S02 -> Source): {(t5-t0)*1000:.2f} ms")
+            
+            # Calcular tempos de cada etapa
+            delta_t1 = (t1-t0)*1000
+            delta_t2 = (t2-t1)*1000
+            delta_t3 = (t3-t2)*1000
+            delta_t4 = (t4-t3)*1000
+            delta_t5 = (t5-t4)*1000
+            
+            # Calcular média dos tempos
+            media_tempos = (delta_t1 + delta_t2 + delta_t3 + delta_t4 + delta_t5) / 5
+            
+            print(f"T0 (Início no Source): {t0:.3f} | T1 (Chegada no LB01): {t1:.3f} | ΔT1 (Source -> LB01): {delta_t1:.2f} ms")
+            print(f"T2 (Saída do LB01 / Chegada no S01): {t2:.3f} | ΔT2 (LB01 -> S01): {delta_t2:.2f} ms")
+            print(f"T3 (Saída do S01 / Chegada no LB02): {t3:.3f} | ΔT3 (S01 -> LB02): {delta_t3:.2f} ms")
+            print(f"T4 (Saída do LB02 / Chegada no S02): {t4:.3f} | ΔT4 (LB02 -> S02): {delta_t4:.2f} ms")
+            print(f"T5 (Saída do S02 / Fim no Source): {t5:.3f} | ΔT5 (S02 -> Source): {delta_t5:.2f} ms")
+            print(f"MÉDIA DOS TEMPOS (ΔT1 + ΔT2 + ΔT3 + ΔT4 + ΔT5)/5: {media_tempos:.2f} ms")
             
             # Aguardar conforme a taxa de geração
             time.sleep(1/rate)

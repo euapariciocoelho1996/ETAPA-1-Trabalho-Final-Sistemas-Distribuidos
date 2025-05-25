@@ -2,139 +2,30 @@ from flask import Flask, request, jsonify
 import time
 import configparser
 import threading
-from queue import Queue
-import logging
 
 class Service:
     def __init__(self, port: int, processing_time: float = 1.0):
         self.port = port
         self.processing_time = processing_time
         self.app = Flask(__name__)
-        self.request_queue = Queue()
-        self.processing_requests = 0
-        self.max_concurrent_requests = 5  # Número máximo de requisições simultâneas
         self._setup_routes()
-        self._start_worker()
-        
-        # Configurar logging
-        logging.basicConfig(
-            filename='log.txt',
-            level=logging.INFO,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        )
-        self.logger = logging.getLogger(f'Service_{port}')
-    
-    def _process_request(self, data):
-        timestamps = data.get('timestamps', {})
-        
-        # Registrar T2 ou T4
-        if not timestamps.get('T2'):
-            timestamps['T2'] = time.time()
-        else:
-            timestamps['T4'] = time.time()
-        
-        # Simular processamento
-        time.sleep(self.processing_time)
-        
-        return {'timestamps': timestamps}
-    
-    def _worker(self):
-        while True:
-            try:
-                # Pegar requisição da fila
-                request_data = self.request_queue.get()
-                if request_data is None:
-                    break
-                
-                # Incrementar contador de requisições em processamento
-                self.processing_requests += 1
-                
-                # Processar requisição
-                result = self._process_request(request_data)
-                
-                # Decrementar contador de requisições em processamento
-                self.processing_requests -= 1
-                
-                # Atualizar resultado na fila
-                self.request_queue.task_done()
-                
-                self.logger.info(f"Requisição processada com sucesso: {result}")
-                
-            except Exception as e:
-                self.processing_requests -= 1
-                self.logger.error(f"Erro ao processar requisição: {str(e)}")
-    
-    def _start_worker(self):
-        self.worker_thread = threading.Thread(target=self._worker)
-        self.worker_thread.daemon = True
-        self.worker_thread.start()
     
     def _setup_routes(self):
         @self.app.route('/process', methods=['POST'])
         def process():
-            try:
-                data = request.json
-                self.logger.info(f"Nova requisição recebida: {data}")
-                
-                # Adicionar requisição à fila
-                self.request_queue.put(data)
-                
-                # Processar requisição
-                result = self._process_request(data)
-                
-                return jsonify(result)
-            except Exception as e:
-                self.logger.error(f"Erro ao receber requisição: {str(e)}")
-                return jsonify({'error': str(e)}), 500
-        
-        @self.app.route('/status', methods=['GET'])
-        def status():
-            return jsonify({
-                'is_available': self.processing_requests < self.max_concurrent_requests,
-                'processing_requests': self.processing_requests,
-                'queue_size': self.request_queue.qsize(),
-                'max_concurrent_requests': self.max_concurrent_requests,
-                'processing_time': self.processing_time,
-                'port': self.port
-            })
-        
-        @self.app.route('/config', methods=['GET'])
-        def get_config():
-            return jsonify({
-                'processing_time': self.processing_time,
-                'max_concurrent_requests': self.max_concurrent_requests,
-                'port': self.port
-            })
-        
-        @self.app.route('/config', methods=['PUT'])
-        def update_config():
-            try:
-                data = request.json
-                
-                # Validar e atualizar configurações
-                if 'processing_time' in data:
-                    new_time = float(data['processing_time'])
-                    if new_time > 0:
-                        self.processing_time = new_time
-                        self.logger.info(f"Tempo de processamento atualizado para: {new_time}")
-                
-                if 'max_concurrent_requests' in data:
-                    new_max = int(data['max_concurrent_requests'])
-                    if new_max > 0:
-                        self.max_concurrent_requests = new_max
-                        self.logger.info(f"Máximo de requisições simultâneas atualizado para: {new_max}")
-                
-                return jsonify({
-                    'message': 'Configuração atualizada com sucesso',
-                    'current_config': {
-                        'processing_time': self.processing_time,
-                        'max_concurrent_requests': self.max_concurrent_requests,
-                        'port': self.port
-                    }
-                })
-            except Exception as e:
-                self.logger.error(f"Erro ao atualizar configuração: {str(e)}")
-                return jsonify({'error': str(e)}), 400
+            data = request.json
+            timestamps = data.get('timestamps', {})
+            
+            # Registrar T2 ou T4
+            if not timestamps.get('T2'):
+                timestamps['T2'] = time.time()
+            else:
+                timestamps['T4'] = time.time()
+            
+            # Simular processamento
+            time.sleep(self.processing_time)
+            
+            return jsonify({'timestamps': timestamps})
     
     def start(self):
         self.app.run(host='0.0.0.0', port=self.port)
