@@ -11,6 +11,8 @@ class Service:
         self.processing_time = processing_time
         self.app = Flask(__name__)
         self.request_queue = Queue()
+        self.processing_requests = 0
+        self.max_concurrent_requests = 5  # Número máximo de requisições simultâneas
         self._setup_routes()
         self._start_worker()
         
@@ -44,8 +46,14 @@ class Service:
                 if request_data is None:
                     break
                 
+                # Incrementar contador de requisições em processamento
+                self.processing_requests += 1
+                
                 # Processar requisição
                 result = self._process_request(request_data)
+                
+                # Decrementar contador de requisições em processamento
+                self.processing_requests -= 1
                 
                 # Atualizar resultado na fila
                 self.request_queue.task_done()
@@ -53,6 +61,7 @@ class Service:
                 self.logger.info(f"Requisição processada com sucesso: {result}")
                 
             except Exception as e:
+                self.processing_requests -= 1
                 self.logger.error(f"Erro ao processar requisição: {str(e)}")
     
     def _start_worker(self):
@@ -77,6 +86,15 @@ class Service:
             except Exception as e:
                 self.logger.error(f"Erro ao receber requisição: {str(e)}")
                 return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/status', methods=['GET'])
+        def status():
+            return jsonify({
+                'is_available': self.processing_requests < self.max_concurrent_requests,
+                'processing_requests': self.processing_requests,
+                'queue_size': self.request_queue.qsize(),
+                'max_concurrent_requests': self.max_concurrent_requests
+            })
     
     def start(self):
         self.app.run(host='0.0.0.0', port=self.port)

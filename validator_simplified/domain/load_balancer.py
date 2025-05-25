@@ -26,6 +26,29 @@ class LoadBalancer:
         )
         self.logger = logging.getLogger(f'LoadBalancer_{port}')
     
+    def _check_service_availability(self, service_url: str) -> bool:
+        try:
+            response = requests.get(f"{service_url}/status")
+            if response.status_code == 200:
+                status = response.json()
+                return status.get('is_available', False)
+            return False
+        except Exception as e:
+            self.logger.error(f"Erro ao verificar status do serviço {service_url}: {str(e)}")
+            return False
+    
+    def _find_available_service(self) -> str:
+        # Tenta encontrar um serviço disponível, começando do último usado
+        start_index = self.current_service
+        for _ in range(len(self.services)):
+            service_url = self.services[self.current_service]
+            if self._check_service_availability(service_url):
+                return service_url
+            self.current_service = (self.current_service + 1) % len(self.services)
+            if self.current_service == start_index:
+                break
+        return None
+    
     def _process_request(self, data: Dict[str, Any]) -> Dict[str, Any]:
         timestamps = data.get('timestamps', {})
         
@@ -35,9 +58,10 @@ class LoadBalancer:
         else:
             timestamps['T3'] = time.time()
         
-        # Selecionar próximo serviço
-        service_url = self.services[self.current_service]
-        self.current_service = (self.current_service + 1) % len(self.services)
+        # Encontrar serviço disponível
+        service_url = self._find_available_service()
+        if not service_url:
+            raise Exception("Nenhum serviço disponível no momento")
         
         try:
             # Enviar para o serviço
