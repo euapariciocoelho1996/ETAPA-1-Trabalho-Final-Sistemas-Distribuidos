@@ -1,5 +1,5 @@
 source:
-  request_rate: 100  # requisições por segundo
+  request_rate: 30  # requisições por segundo
   target: "http://loadbalancer1:8080"
   connection:
     timeout: 5
