@@ -57,8 +57,8 @@ class ImageClassifierService:
         self.is_training = True
         
         # Diretórios com as imagens de treinamento
-        car_dir = "validator_python/data/train/cars"
-        bike_dir = "validator_python/data/train/bikes"
+        car_dir = "data/train/cars"
+        bike_dir = "data/train/bikes"
         
         # Carrega e processa as imagens
         X = []  # Features
