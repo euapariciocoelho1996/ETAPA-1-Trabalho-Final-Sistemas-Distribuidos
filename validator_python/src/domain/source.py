@@ -214,29 +214,37 @@ class Source:
         """
         # Prepara os dados
         times = np.array([m["t5_total"] for m in self.metrics_history])
-        # Ajusta request_rates para ter o mesmo tamanho de times, representando a taxa ao longo do tempo
-        request_rates_over_time = np.full(len(times), self.request_rate) # Assuming constant rate for now
         
-        # Cria o gráfico
-        plt.figure(figsize=(10, 6))
-        plt.plot(request_rates_over_time, times, 'o-', label='MRT por Requisição', alpha=0.6)
-        
-        # Calcula e plota o MRT médio geral como uma linha horizontal
+        # Calcula o MRT médio geral (em segundos)
         if times.size > 0:
-            mrt_medio_geral = np.mean(times)
-            plt.axhline(y=mrt_medio_geral, color='r', linestyle='-', label=f'MRT Médio Geral: {mrt_medio_geral:.3f}s')
-            logger.info(f"MRT Médio Geral calculado: {mrt_medio_geral:.3f}s")
+            mrt_medio_geral_seg = np.mean(times)
+            mrt_medio_geral_ms = mrt_medio_geral_seg * 1000 # Converte para milissegundos
+            logger.info(f"MRT Médio Geral calculado: {mrt_medio_geral_seg:.3f}s ({mrt_medio_geral_ms:.3f}ms)")
+            
+            # Número de serviços (hardcoded baseado na análise de source.yaml)
+            num_services = 4 # Ajuste conforme a sua configuração real, se diferente
 
-        plt.xlabel('Taxa de Geração (req/s)') # Pode ser constante neste caso simulado
-        plt.ylabel('Tempo de Resposta Total (s)') # Ajustado para Tempo Total para cada ponto
-        plt.title('Tempo de Resposta por Requisição ao Longo do Experimento')
-        plt.legend()
-        plt.grid(True)
-        
-        # Salva o gráfico
-        plt.savefig('performance_graph.png')
-        plt.close()
-        
-        logger.info("\n=== Gráfico Gerado ===")
-        logger.info("Arquivo: performance_graph.png")
-        logger.info("=====================") 
+            # Cria o gráfico: MRT (ms) vs. Número de Serviços
+            plt.figure(figsize=(10, 6))
+            plt.plot(num_services, mrt_medio_geral_ms, 'bo', label='Experimento') # Plota um ponto único
+
+            # Adiciona rótulos e título
+            plt.xlabel('Número de Serviços')
+            plt.ylabel('MRT (ms)')
+            plt.title('Tempo Médio de Resposta (MRT) vs. Número de Serviços')
+            plt.legend()
+            plt.grid(True)
+            
+            # Define os limites do eixo X para melhor visualização do ponto único
+            plt.xlim(0, 5) # Exemplo de limite, ajuste se necessário
+            plt.ylim(0, mrt_medio_geral_ms * 1.2) # Ajusta limite Y um pouco acima do ponto
+
+            # Salva o gráfico
+            plt.savefig('performance_graph.png')
+            plt.close()
+            
+            logger.info("\n=== Gráfico Gerado ===")
+            logger.info("Arquivo: performance_graph.png")
+            logger.info("=====================")
+        else:
+            logger.warning("Não há dados de métricas para gerar o gráfico.") 
