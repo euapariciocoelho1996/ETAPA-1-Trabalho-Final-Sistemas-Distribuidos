@@ -93,8 +93,48 @@ class Service:
                 'is_available': self.processing_requests < self.max_concurrent_requests,
                 'processing_requests': self.processing_requests,
                 'queue_size': self.request_queue.qsize(),
-                'max_concurrent_requests': self.max_concurrent_requests
+                'max_concurrent_requests': self.max_concurrent_requests,
+                'processing_time': self.processing_time,
+                'port': self.port
             })
+        
+        @self.app.route('/config', methods=['GET'])
+        def get_config():
+            return jsonify({
+                'processing_time': self.processing_time,
+                'max_concurrent_requests': self.max_concurrent_requests,
+                'port': self.port
+            })
+        
+        @self.app.route('/config', methods=['PUT'])
+        def update_config():
+            try:
+                data = request.json
+                
+                # Validar e atualizar configurações
+                if 'processing_time' in data:
+                    new_time = float(data['processing_time'])
+                    if new_time > 0:
+                        self.processing_time = new_time
+                        self.logger.info(f"Tempo de processamento atualizado para: {new_time}")
+                
+                if 'max_concurrent_requests' in data:
+                    new_max = int(data['max_concurrent_requests'])
+                    if new_max > 0:
+                        self.max_concurrent_requests = new_max
+                        self.logger.info(f"Máximo de requisições simultâneas atualizado para: {new_max}")
+                
+                return jsonify({
+                    'message': 'Configuração atualizada com sucesso',
+                    'current_config': {
+                        'processing_time': self.processing_time,
+                        'max_concurrent_requests': self.max_concurrent_requests,
+                        'port': self.port
+                    }
+                })
+            except Exception as e:
+                self.logger.error(f"Erro ao atualizar configuração: {str(e)}")
+                return jsonify({'error': str(e)}), 400
     
     def start(self):
         self.app.run(host='0.0.0.0', port=self.port)

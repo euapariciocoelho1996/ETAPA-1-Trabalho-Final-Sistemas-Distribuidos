@@ -120,6 +120,45 @@ class LoadBalancer:
             except Exception as e:
                 self.logger.error(f"Erro ao receber requisição: {str(e)}")
                 return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/config', methods=['GET'])
+        def get_config():
+            return jsonify({
+                'port': self.port,
+                'services': self.services,
+                'next_lb_url': self.next_lb_url,
+                'current_service': self.current_service
+            })
+        
+        @self.app.route('/config', methods=['PUT'])
+        def update_config():
+            try:
+                data = request.json
+                
+                # Validar e atualizar configurações
+                if 'services' in data:
+                    new_services = data['services']
+                    if isinstance(new_services, list) and len(new_services) > 0:
+                        self.services = new_services
+                        self.current_service = 0
+                        self.logger.info(f"Lista de serviços atualizada: {new_services}")
+                
+                if 'next_lb_url' in data:
+                    self.next_lb_url = data['next_lb_url']
+                    self.logger.info(f"URL do próximo load balancer atualizada: {self.next_lb_url}")
+                
+                return jsonify({
+                    'message': 'Configuração atualizada com sucesso',
+                    'current_config': {
+                        'port': self.port,
+                        'services': self.services,
+                        'next_lb_url': self.next_lb_url,
+                        'current_service': self.current_service
+                    }
+                })
+            except Exception as e:
+                self.logger.error(f"Erro ao atualizar configuração: {str(e)}")
+                return jsonify({'error': str(e)}), 400
     
     def start(self):
         self.app.run(host='0.0.0.0', port=self.port)
