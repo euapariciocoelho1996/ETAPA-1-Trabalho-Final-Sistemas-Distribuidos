@@ -1,0 +1,20 @@
+source:
+  request_rate: 100  # requisições por segundo
+  target: "http://loadbalancer1:8080"
+  connection:
+    timeout: 5
+    retry_attempts: 3
+
+loadbalancer1:
+  services:
+    - "http://service1.1:8081"
+    - "http://service1.2:8082"
+  algorithm: "round-robin"
+  max_connections: 1000
+
+loadbalancer2:
+  services:
+    - "http://service2.1:8083"
+    - "http://service2.2:8084"
+  algorithm: "round-robin"
+  max_connections: 1000 
