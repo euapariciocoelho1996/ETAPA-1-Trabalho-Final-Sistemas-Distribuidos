@@ -2,198 +2,143 @@
 
 Este projeto é o trabalho final da disciplina de Sistemas Distribuídos, implementando uma versão em Python do PASID-VALIDATOR, uma ferramenta para validação de desempenho em sistemas distribuídos.
 
-## 📺 Vídeo Explicativo
-[Assista ao vídeo explicativo do projeto](https://youtu.be/Fv1OZV-fvcU)
-
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
-.
-├── config/                 # Arquivos de configuração
-│   ├── loadbalancer1.properties
-│   ├── loadbalancer2.properties
-│   └── source.properties
-├── data/                   # Dados e recursos
-├── src/                    # Código fonte principal
-│   ├── domain/            # Componentes principais do sistema
-│   │   ├── abstract_proxy.py
-│   │   ├── load_balancer_proxy.py
-│   │   ├── network_manager.py
-│   │   ├── service.py
-│   │   ├── service_proxy.py
-│   │   └── source.py
-│   ├── main.py            # Ponto de entrada da aplicação
-│   └── start_services.py  # Script para iniciar os serviços
-├── requirements.txt        # Dependências do projeto
-└── README.md              # Este arquivo
+validator_python/
+│
+├── src/
+│   ├── domain/                    # Componentes principais do sistema
+│   │   ├── service.py            # Implementação do serviço de classificação
+│   │   ├── load_balancer_proxy.py # Balanceador de carga
+│   │   ├── network_manager.py    # Gerenciamento de rede
+│   │   ├── service_proxy.py      # Proxy para serviços
+│   │   ├── abstract_proxy.py     # Classe base para proxies
+│   │   └── source.py             # Implementação do classificador
+│   │
+│   ├── main.py                   # Ponto de entrada do sistema
+│   └── start_services.py         # Inicializador de serviços
+│
+├── data/
+│   ├── train/
+│   │   ├── cars/                # Imagens de treinamento - carros
+│   │   └── bikes/               # Imagens de treinamento - motos
+│
+├── config/                       # Configurações do sistema
+│
+├── vehicle_classifier.pkl        # Modelo treinado (225KB)
+└── requirements.txt              # Dependências do projeto
 ```
 
-## 📄 Descrição Detalhada dos Arquivos
+## Componentes Principais
 
-### Arquivos de Configuração (`config/`)
+### 1. Serviço de Classificação (`service.py`)
+- **Funcionalidades**:
+  - Classificação de imagens de veículos
+  - Treinamento do modelo KNN
+  - Servidor TCP para requisições
+  - Processamento assíncrono de imagens
 
-#### `loadbalancer1.properties`
-- Configurações do primeiro balanceador de carga
-- Define parâmetros como:
-  - Porta de escuta
-  - Política de balanceamento
-  - Timeout de conexão
-  - Endereços dos serviços gerenciados
+- **Características**:
+  - Suporte a múltiplas conexões simultâneas
+  - Logging detalhado
+  - Tratamento de erros robusto
+  - Carregamento/salvamento de modelo
 
-#### `loadbalancer2.properties`
-- Configurações do segundo balanceador de carga
-- Similar ao primeiro, mas com parâmetros específicos para o segundo nível
-- Inclui configurações de:
-  - Distribuição de carga
-  - Prioridades de serviços
-  - Métricas de monitoramento
+### 2. Balanceador de Carga (`load_balancer_proxy.py`)
+- **Funcionalidades**:
+  - Distribuição de requisições entre serviços
+  - Monitoramento de saúde dos serviços
+  - Algoritmo round-robin
+  - Detecção de falhas
 
-#### `source.properties`
-- Configurações do gerador de solicitações
-- Define:
-  - Taxa de geração de requisições
-  - Endereços dos balanceadores
-  - Parâmetros de simulação
-  - Configurações de coleta de métricas
+- **Características**:
+  - Timeout configurável
+  - Contagem de erros
+  - Métricas de tempo de resposta
+  - Recuperação automática
 
-### Código Fonte (`src/`)
+### 3. Gerenciador de Rede (`network_manager.py`)
+- Gerencia comunicação entre serviços
+- Implementa protocolos de rede
+- Tratamento de conexões
 
-#### `main.py`
-- Ponto de entrada principal da aplicação
-- Inicializa todos os componentes
-- Configura o ambiente de execução
-- Gerencia o ciclo de vida da aplicação
+### 4. Proxies (`service_proxy.py`, `abstract_proxy.py`)
+- Implementação do padrão Proxy
+- Interface comum para serviços
+- Encapsulamento de comunicação
 
-#### `start_services.py`
-- Script para inicialização dos serviços
-- Configura a rede entre os serviços
-- Define variáveis de ambiente
-- Gerencia a ordem de inicialização dos serviços
+## Requisitos Técnicos
 
-### Componentes do Domínio (`src/domain/`)
+### Dependências Principais
+- OpenCV (cv2)
+- NumPy
+- scikit-learn
+- PyYAML
+- Socket
 
-#### `abstract_proxy.py`
-- Classe base abstrata para implementação de proxies
-- Define a interface comum para todos os proxies
-- Implementa métodos base de comunicação
-- Gerencia conexões e timeouts
+### Configurações
+- Portas padrão: 8083-8086
+- Host: localhost
+- Timeout: 1 segundo
+- Threshold de erros: 3 tentativas
 
-#### `load_balancer_proxy.py`
-- Implementação do balanceador de carga
-- Algoritmo de distribuição de requisições
-- Monitoramento de saúde dos serviços
-- Gerenciamento de filas e prioridades
+## Funcionalidades do Sistema
 
-#### `network_manager.py`
-- Gerenciamento de comunicação em rede
-- Implementa protocolos de comunicação
-- Gerencia conexões WebSocket
-- Trata reconexões e falhas de rede
+1. **Classificação de Imagens**
+   - Redimensionamento para 64x64
+   - Conversão para escala de cinza
+   - Extração de features
+   - Classificação KNN
 
-#### `service.py`
-- Implementação base de serviços
-- Define interface comum para todos os serviços
-- Gerencia ciclo de vida do serviço
-- Implementa métricas de desempenho
+2. **Balanceamento de Carga**
+   - Distribuição round-robin
+   - Monitoramento de saúde
+   - Failover automático
+   - Métricas de desempenho
 
-#### `service_proxy.py`
-- Proxy para comunicação entre serviços
-- Gerencia conexões entre serviços
-- Implementa retry e circuit breaker
-- Coleta métricas de comunicação
+3. **Processamento Distribuído**
+   - Múltiplos serviços
+   - Comunicação TCP
+   - Threads para conexões
+   - Processamento assíncrono
 
-#### `source.py`
-- Implementação do gerador de solicitações
-- Gera carga de trabalho controlada
-- Coleta métricas de desempenho
-- Gera relatórios e gráficos
+## Métricas e Monitoramento
 
-### Outros Arquivos
+- Tempo de resposta
+- Taxa de erros
+- Disponibilidade dos serviços
+- Contagem de requisições
+- Logs detalhados
 
-#### `requirements.txt`
-- Lista de dependências do projeto
-- Versões específicas de cada pacote
-- Inclui:
-  - FastAPI para APIs REST
-  - WebSocket para comunicação em tempo real
-  - Matplotlib para gráficos
-  - Outras bibliotecas de suporte
+## Observações de Implementação
 
-#### `README.md`
-- Documentação principal do projeto
-- Instruções de instalação e uso
-- Descrição da arquitetura
-- Guia de contribuição
+1. **Segurança**
+   - Validação de entrada
+   - Timeout em conexões
+   - Tratamento de exceções
 
-## 🎯 Objetivo
+2. **Performance**
+   - Processamento assíncrono
+   - Balanceamento de carga
+   - Cache de modelo
 
-O PASID-VALIDATOR é uma ferramenta desenvolvida para validar modelos de Stochastic Petri Net (SPN) através de experimentos práticos. O objetivo é verificar se o modelo teórico representa adequadamente o sistema real, comparando comportamentos previstos com dados observados.
+3. **Manutenibilidade**
+   - Logging estruturado
+   - Código modular
+   - Configurações externas
 
-## 🔄 Fluxo do Sistema
+## Como Executar
 
-O sistema é composto por três nós principais:
-
-1. **Nó 01 - Source**
-   - Responsável por gerar solicitações
-   - Coleta e compila resultados
-   - Calcula métricas de validação
-
-2. **Nó 02 - LoadBalancer1 e Serviços**
-   - Balanceador de carga primário
-   - Distribui solicitações entre Service1.1 e Service1.2
-   - Gerencia processamento inicial
-
-3. **Nó 03 - LoadBalancer2 e Serviços**
-   - Balanceador de carga secundário
-   - Distribui solicitações entre Service2.1 e Service2.2
-   - Realiza processamento adicional
-
-## ⏱️ Métricas de Tempo
-
-O sistema coleta diversos timestamps para análise de desempenho:
-
-- **MRT (Mean Response Time)**: Tempo médio de resposta
-- **T1**: Tempo de chegada da solicitação no servidor
-- **T2**: Tempo de processamento e envio da resposta
-- **T3, T4, T5**: Tempos intermediários de processamento
-
-## 🛠️ Tecnologias Utilizadas
-
-- **FastAPI**: Framework web para APIs REST
-- **WebSocket**: Comunicação em tempo real
-- **Python-dotenv**: Gerenciamento de variáveis de ambiente
-- **PyYAML**: Manipulação de arquivos de configuração
-- **Matplotlib**: Geração de gráficos de desempenho
-
-## 📋 Pré-requisitos
-
-- Python 3.8+
-- Dependências listadas em `requirements.txt`
-
-## 🔧 Instalação
-
-1. Clone o repositório
-2. Crie um ambiente virtual:
-```bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
-```
-
-3. Instale as dependências:
+1. Instale as dependências:
 ```bash
 pip install -r requirements.txt
 ```
 
-## 🚀 Executando o Projeto
-
-1. Inicie os serviços:
+2. Inicie os serviços:
 ```bash
 python src/start_services.py
 ```
 
-2. Execute a aplicação principal:
-```bash
-python src/main.py
-```
+
 
