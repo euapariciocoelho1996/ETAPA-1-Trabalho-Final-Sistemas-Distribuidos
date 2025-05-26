@@ -1,4 +1,4 @@
-# PASID-VALIDATOR - Sistema de Validação de Desempenho em Sistemas Distribuídos
+# PASID-VALIDATOR - ETAPA 1 - Sistema de Validação de Desempenho em Sistemas Distribuídos
 
 Este projeto é o trabalho final da disciplina de Sistemas Distribuídos, implementando uma versão em Python do PASID-VALIDATOR, uma ferramenta para validação de desempenho em sistemas distribuídos.
 
@@ -65,8 +65,8 @@ Este projeto é o trabalho final da disciplina de Sistemas Distribuídos, implem
 - Gerencia o ciclo de vida da aplicação
 
 #### `start_services.py`
-- Script para inicialização dos serviços em containers Docker
-- Configura a rede entre containers
+- Script para inicialização dos serviços
+- Configura a rede entre os serviços
 - Define variáveis de ambiente
 - Gerencia a ordem de inicialização dos serviços
 
@@ -161,7 +161,6 @@ O sistema coleta diversos timestamps para análise de desempenho:
 
 - **FastAPI**: Framework web para APIs REST
 - **WebSocket**: Comunicação em tempo real
-- **Docker**: Containerização dos serviços
 - **Python-dotenv**: Gerenciamento de variáveis de ambiente
 - **PyYAML**: Manipulação de arquivos de configuração
 - **Matplotlib**: Geração de gráficos de desempenho
@@ -169,7 +168,6 @@ O sistema coleta diversos timestamps para análise de desempenho:
 ## 📋 Pré-requisitos
 
 - Python 3.8+
-- Docker
 - Dependências listadas em `requirements.txt`
 
 ## 🔧 Instalação
@@ -189,7 +187,7 @@ pip install -r requirements.txt
 
 ## 🚀 Executando o Projeto
 
-1. Inicie os serviços em containers Docker:
+1. Inicie os serviços:
 ```bash
 python src/start_services.py
 ```
@@ -198,20 +196,4 @@ python src/start_services.py
 ```bash
 python src/main.py
 ```
-
-## 📊 Configuração dos Experimentos
-
-Os experimentos são configurados através de arquivos properties:
-
-- **source.properties**: Configurações do gerador de solicitações
-- **loadbalancer1.properties**: Configurações do primeiro balanceador
-- **loadbalancer2.properties**: Configurações do segundo balanceador
-
-## 📈 Análise de Desempenho
-
-O sistema gera gráficos de desempenho analisando:
-- MRT vs Taxa de Geração
-- Tempos de Processamento vs Serviços
-- Latência de Rede vs Processamento
-
 
